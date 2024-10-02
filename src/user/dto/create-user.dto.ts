@@ -1,4 +1,5 @@
 import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, IsStrongPassword } from "class-validator";
+import { Role } from "src/auth/decorator/role.enum";
 
 export class CreateUserDto {
     @IsEmail()
@@ -15,5 +16,5 @@ export class CreateUserDto {
     @IsOptional()
     status: boolean;
   
-   
+    role: Role[];
   }
