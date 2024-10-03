@@ -1,61 +1,67 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common";
-import { CreateCategoryDto } from "./dto/create-category.dto";
-import { Types } from "mongoose";
-import { CategoryRepository } from "./category.repository";
-import { CategoryUpdateDto } from "./dto/update-category.dto";
+import { Category } from 'src/category/model/category.schema';
+import {
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { Types } from 'mongoose';
+import { CategoryRepository } from './category.repository';
+import { CategoryUpdateDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoryService {
+  constructor(private readonly repository: CategoryRepository) {}
+  async createCategory(createCategoryDto: CreateCategoryDto) {
+    const { name, status, parent_id } = createCategoryDto;
 
-    constructor(private readonly repository: CategoryRepository) {}
-    async createCategory(createCategoryDto: CreateCategoryDto)  {
-        const { name, status, parent_id } = createCategoryDto;
-    
-        const checkParent = parent_id !== '' ? parent_id : null;
-    
-        try {
-          if (parent_id !== '') {
-            const idValid = Types.ObjectId.isValid(parent_id);
-            if (!idValid) {
-              throw new UnprocessableEntityException('parent_id khong hop le');
-            }
-    
-            const parent = await this.repository.findOne(parent_id);
-            if (!parent) {
-              throw new NotFoundException('Không tìm thấy category id');
-            }
-            
-          }
-          return await this.repository.create({
-            name,
-            status,
-            parent_id: checkParent,
-          });
-        } catch (error) {
-          throw new UnprocessableEntityException(error.message);
+    const checkParent = parent_id !== '' ? parent_id : null;
+
+    try {
+      if (parent_id !== '') {
+        const idValid = Types.ObjectId.isValid(parent_id);
+        if (!idValid) {
+          throw new UnprocessableEntityException('parent_id khong hop le');
+        }
+
+        const parent = await this.repository.findOne(parent_id);
+        if (!parent) {
+          throw new NotFoundException('Không tìm thấy category id');
         }
       }
-
-      findAll() {
-        return this.repository.findAll();
-      }
-    
-      async findById(id: string){
-        try{
-            return await this.repository.findOne(id);
-            
-        } 
-        catch (error){
-            throw new NotFoundException('không tìm thấy danh mục');
-        };
+      return await this.repository.create({
+        name,
+        status,
+        parent_id: checkParent,
+      });
+    } catch (error) {
+      throw new UnprocessableEntityException(error.message);
     }
+  }
 
-  async DeleteById(id: string) {
-    const category = await this.repository.DeleteOne(id);
+  findAll() {
+    return this.repository.findAll();
+  }
 
+  async findById(id: string) {
+    const category = await this.repository.findOne(id);
     if (!category) {
       throw new NotFoundException('không tìm thấy danh mục');
     }
+
+    return category;
+  }
+
+  async DeleteById(id: string) {
+    const category = await this.findById(id);
+
+    if (category.children.length > 0) {
+      throw new UnprocessableEntityException(
+        'Category này vẫn còn danh mục con',
+      );
+    }
+
+    await this.repository.DeleteOne(category._id.toHexString());
 
     return category;
   }
@@ -80,20 +86,21 @@ export class CategoryService {
     if (!idValid) {
       throw new UnprocessableEntityException('id khong hop le');
     }
-    const category = await this.repository.updateOne(id, {
+
+    const category = await this.findById(id);
+    if (category.children.length > 0) {
+      throw new UnprocessableEntityException(
+        'Danh muc co danh muc con, không thể thay đổi lại',
+      );
+    }
+    return await this.repository.updateOne(id, category, {
       name,
       status,
       parent_id: checkParent,
     });
-
-    if (!category) {
-      throw new NotFoundException('không tìm thấy danh mục');
-    }
-
-    return category;
   }
 
-   async updateStatusById(id: string, status: boolean) {
+  async updateStatusById(id: string, status: boolean) {
     const idValid = Types.ObjectId.isValid(id);
     if (!idValid) {
       throw new UnprocessableEntityException('id này khong hop le');
