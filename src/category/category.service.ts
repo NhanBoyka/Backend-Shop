@@ -8,6 +8,7 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { Types } from 'mongoose';
 import { CategoryRepository } from './category.repository';
 import { CategoryUpdateDto } from './dto/update-category.dto';
+import { ParamPaginationDto } from 'src/common/param-pagination.dto';
 
 @Injectable()
 export class CategoryService {
@@ -39,8 +40,12 @@ export class CategoryService {
     }
   }
 
-  findAll() {
-    return this.repository.findAll();
+  findAll(params: ParamPaginationDto) {
+    const { page, limit, sort, keyword } = params;
+
+    const newSort = sort != 'asc' ? 'desc' : 'asc';
+
+    return this.repository.findAll(page, limit, newSort, keyword);
   }
 
   async findById(id: string) {

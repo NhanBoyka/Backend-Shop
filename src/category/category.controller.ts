@@ -15,6 +15,8 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { get } from 'mongoose';
 import { CategoryUpdateDto } from './dto/update-category.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { ParamPaginationDto } from 'src/common/param-pagination.dto';
+import { buildPagination } from 'src/common/commom';
 
 @Controller('categories')
 export class CategoryController {
@@ -27,8 +29,13 @@ export class CategoryController {
   }
   @UseGuards(JwtAuthGuard)
   @Get()
-  getAll() {
-    return this.service.findAll();
+  async getAll(@Query() params: ParamPaginationDto) {
+    const categories = await this.service.findAll(params);
+
+    const rootCategories = categories.filter((category) => {
+      return !category.parent_id === null;
+    });
+    return buildPagination<Category>(categories, params, rootCategories);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -54,5 +61,4 @@ export class CategoryController {
   updateStatus(@Param('id') id: string, @Query('status') status: boolean) {
     return this.service.updateStatusById(id, status);
   }
-
 }
