@@ -10,6 +10,7 @@ import { ProductRepository } from './product.repository';
 import { Types } from 'mongoose';
 import { Product } from './model/product.schema';
 import { ParamPaginationDto } from 'src/common/param-pagination.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 @Injectable()
 export class ProductService {
   constructor(
@@ -20,23 +21,17 @@ export class ProductService {
   async createProduct(createProduct: CreateProductDto) {
     let { category_id, ...data } = createProduct;
 
-    if (!category_id) {
-      category_id = null;
-    } else {
-      checkValisIsObject('category_id', category_id);
+    checkValisIsObject(category_id, 'category_id');
 
-      const category = await this.categoryRepository.findOne(category_id);
+    const category = await this.categoryRepository.findOne(category_id);
 
-      if (!category) {
-        throw new NotFoundException('Khong tim thay category');
-      }
+    if (!category) {
+      throw new NotFoundException('Khong tim thay category');
     }
 
     const product = {
       _id: new Types.ObjectId(),
-      category_id: category_id
-        ? Types.ObjectId.createFromHexString(category_id)
-        : null,
+      category_id: Types.ObjectId.createFromHexString(category_id),
       ...data,
     };
 
@@ -65,11 +60,58 @@ export class ProductService {
 
     return this.productRepository.findAll(page, limit, newSort, keyword);
   }
+  async findById(id: string) {
+    checkValisIsObject(id, 'product id');
+
+    const product = await this.productRepository.findOne(id);
+    if (!product) {
+      throw new NotFoundException('Khong tim thay product');
+    }
+    return product;
+  }
 
   async deleteById(id: string) {
     checkValisIsObject(id, 'product id');
 
     const product = await this.productRepository.deleteOne(id);
+
+    if (!product) {
+      throw new NotFoundException('Khong tim thay product');
+    }
+
+    return product;
+  }
+
+  async updateById(id: string, updateProduct: UpdateProductDto) {
+    checkValisIsObject(id, 'product id');
+    checkValisIsObject(updateProduct.Category_id, 'category_id');
+
+    const { Category_id, ...data } = updateProduct;
+
+    const category = await this.categoryRepository.findOne(Category_id);
+
+    if (!category) {
+      throw new NotFoundException('Khong tim thay category');
+    }
+
+    const product = await this.productRepository.updateOne(id, {
+      _id: new Types.ObjectId(id),
+      category_id: new Types.ObjectId(Category_id),
+      ...data,
+    });
+    if (!product) {
+      throw new NotFoundException('Khong tim thay product');
+    }
+
+    return product;
+  }
+
+  async deleteExtraImages(id: string, image_id: string[]) {
+    checkValisIsObject(id, 'product id');
+    const product = await this.productRepository.deleteExtraImages(
+      new Types.ObjectId(id),
+      image_id,
+    );
 
     if (!product) {
       throw new NotFoundException('Khong tim thay product');

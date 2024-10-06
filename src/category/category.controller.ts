@@ -22,12 +22,12 @@ import { buildPagination } from 'src/common/commom';
 export class CategoryController {
   constructor(private readonly service: CategoryService) {}
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() category: CreateCategoryDto) {
     return this.service.createCategory(category);
   }
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get()
   async getAll(@Query() params: ParamPaginationDto) {
     const categories = await this.service.findAll(params);
@@ -38,25 +38,25 @@ export class CategoryController {
     return buildPagination<Category>(categories, params, rootCategories);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get(':id')
   getOne(@Param('id') _id: string) {
     return this.service.findById(_id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Delete(':id')
   deleteOne(@Param('id') id: string) {
     return this.service.DeleteById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Put(':id')
   updateOne(@Param('id') id: string, @Body() category: CategoryUpdateDto) {
     return this.service.updateById(id, category);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Put(':id/status')
   updateStatus(@Param('id') id: string, @Query('status') status: boolean) {
     return this.service.updateStatusById(id, status);

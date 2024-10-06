@@ -31,32 +31,32 @@ export class UserController {
   }
 
   // sửa
-  @UseGuards(JwtAuthGuard)
-  @Roles(Role.ADMIN)
+  // @UseGuards(JwtAuthGuard)
+  // @Roles(Role.ADMIN)
   @Put(':id')
   updateUser(@Param('id') _id: string, @Body() updateUser: UpdateUserDto) {
     return this.Service.updateUser(_id, updateUser);
   }
 
   // thay đôir trạng thái
-  @UseGuards(JwtAuthGuard)
-  @Roles(Role.ADMIN)
+  // @UseGuards(JwtAuthGuard)
+  // @Roles(Role.ADMIN)
   @Put(':id/status')
   updateStatusUser(@Param('id') _id: string, @Query('status') status: boolean) {
     return this.Service.updateStatusUser(_id, status);
   }
 
   // lấy all có tìm kiếm
-  @UseGuards(JwtAuthGuard)
-  @Roles(Role.ADMIN)
+  // @UseGuards(JwtAuthGuard)
+  // @Roles(Role.ADMIN)
   @Get()
   async getAllUsers(@Query() page: ParamPaginationDto) {
     const listUsers = await this.Service.getAll(page);
     return buildPagination<User>(listUsers, page);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Roles(Role.ADMIN)
+  // @UseGuards(JwtAuthGuard)
+  // @Roles(Role.ADMIN)
   @Delete(':id')
   async deleteUser(@Param('id') _id: string) {
     await this.Service.deleteUser(_id);
@@ -65,8 +65,8 @@ export class UserController {
   }
 
   // lấy user theo id
-  @UseGuards(JwtAuthGuard)
-  @Roles(Role.ADMIN)
+  // @UseGuards(JwtAuthGuard)
+  // @Roles(Role.ADMIN)
   @Get(':id')
   getUserById(@Param('id') _id: string) {
     return this.Service.getOne(_id);
