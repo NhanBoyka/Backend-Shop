@@ -10,6 +10,7 @@ import {
   Query,
   UploadedFile,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { Prop } from '@nestjs/mongoose';
@@ -30,6 +31,10 @@ import {
 import { ParamPaginationDto } from 'src/common/param-pagination.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Types } from 'mongoose';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { RoleAuthGuard } from 'src/auth/guards/role.jwt.guard';
+import { Role } from 'src/auth/decorator/role.enum';
+import { Roles } from 'src/auth/decorator/role.decorater';
 
 @Controller('products')
 export class ProducController {
@@ -37,7 +42,8 @@ export class ProducController {
     private readonly cloudinaryService: CloudinaryService,
     private readonly productService: ProductService,
   ) {}
-
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(Role.ADMIN, Role.USER)
   @Post()
   @UseInterceptors(
     FileFieldsInterceptor([{ name: 'main_image' }, { name: 'extra_images' }]),
@@ -88,12 +94,15 @@ export class ProducController {
 
     return 'Đã tạo product thành công ';
   }
-
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(Role.ADMIN, Role.USER)
   @Get()
   getAll(@Query() params: ParamPaginationDto) {
     return this.productService.findAll(params);
   }
 
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(Role.ADMIN, Role.USER)
   @Delete(':id')
   async delete(@Param('id') id: string) {
     const product = await this.productService.deleteById(id);
@@ -104,11 +113,15 @@ export class ProducController {
     return 'Đã xóa product thành công';
   }
 
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(Role.ADMIN, Role.USER)
   @Put(':id')
   update(@Param('id') id: string, @Body() product: UpdateProductDto) {
     return this.productService.updateById(id, product);
   }
 
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(Role.ADMIN, Role.USER)
   @Put(':id/main_image')
   @UseInterceptors(FileInterceptor('main_image'))
   async updateImage(
@@ -139,12 +152,16 @@ export class ProducController {
     return newProduct;
   }
 
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(Role.ADMIN, Role.USER)
   @Get(':id')
   getOne(@Param('id') id: string) {
     return this.productService.findById(id);
   }
 
   // ham chuc nang aip xoa anh phu
+  @UseGuards(JwtAuthGuard, RoleAuthGuard)
+  @Roles(Role.ADMIN, Role.USER)
   @Put(':id/add_images')
   @UseInterceptors(FileFieldsInterceptor([{ name: 'extra_images' }]))
   async addImages(
